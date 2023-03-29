@@ -39,30 +39,15 @@ public:
         m_queue.emplace(t);
     }
 
-    // // 队列取出元素
-    // bool dequeue(T &t)
-    // {
-    //     std::unique_lock<std::mutex> lock(m_mutex); // 队列加锁
-
-    //     if (m_queue.empty())
-    //         return false;
-    //     t = std::move(m_queue.front()); // 取出队首元素，返回队首元素值，并进行右值引用
-
-    //     m_queue.pop(); // 弹出入队的第一个元素
-
-    //     return true;
-    // }
 
     // 队列取出元素
-    T dequeue()
+    void dequeue(T &t)
     {
         std::unique_lock<std::mutex> lock(m_mutex); // 队列加锁
 
-        T t = std::move(m_queue.front()); // 取出队首元素，返回队首元素值，并进行右值引用
+        t = std::move(m_queue.front()); // 取出队首元素，返回队首元素值，并进行右值引用
 
         m_queue.pop(); // 弹出入队的第一个元素
-
-        return t;
     }
 };
 

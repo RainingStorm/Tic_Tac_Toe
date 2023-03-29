@@ -44,7 +44,8 @@ private:
         while (!this_pool->m_stop) {
             HumanPlay humanPlay;
             this_pool->mission.wait();
-            T cfd = this_pool->que.dequeue();
+            T cfd;
+            this_pool->que.dequeue(cfd);
             this_pool->rest.post();
             humanPlay.play(cfd);
             close(cfd);
