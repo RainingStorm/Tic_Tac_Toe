@@ -13,6 +13,7 @@ ALL:server
 $(obj):./obj/%.o:./%.cpp
 	g++ -c $< -o $@ $(myArgs) -I $(inc_path)  
 
+# 目标文件连接-可执行文件
 server: $(obj)
 	g++ $^ -o $@ $(myArgs)
 
