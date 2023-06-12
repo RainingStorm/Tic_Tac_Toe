@@ -264,6 +264,7 @@ public:
     ~HumanPlay() { };
 
     void play(int fd);
+    void p2pPlay(int fd);
 
     bool checkWon(Board& board, PlayerEnum::Player owner, const std::string& message) const;
     bool checkDraw(Board& board) const;

@@ -958,78 +958,175 @@ void Training::train(Engine& engine)
 
 void HumanPlay::play(int fd)
 {
+    LOOP:
     std::shared_ptr<Engine> gammaEngine;
 
     // gammaEngine = std::make_shared<RandomEngine>();
     gammaEngine = std::make_shared<RLEngine>();
 
     Board board;
+    char st[1024];
+    int cho = -1;
+    int n = read(fd, st, 1024);
+    if (n < 0) {
+        // 处理错误
+        perror("read error");
+        exit(-1);
+    }
+    else if (n == 0) {
+        // 客户端断开连接
+        printf("客户端断开连接\n");   
+        close(fd);
+        return;   
+    }
+    else {
+        // 处理读取到的数据
+        std::string message(st, n);
+        cho = 0 + message[0] - '0';   
+    }
+    if (cho == 0) return;
+
+
+
+
+
 
     int inputToken = -1;
-    // cout<<inputToken<<endl;
-    while (inputToken != 0)
-    {
-        board.printToScreen();
-        // std::cout << "Your move: ";
-        // std::cin >> inputToken;
-        char buffer[1024];
-        int n = read(fd, buffer, 1024);   // recv()
-        if (n < 0) {
-            // 处理错误
-            perror("read error");
-            exit(-1);
-        }
-        else if (n == 0) {
-            // 客户端断开连接
-            printf("客户端断开连接\n");
-            
-            close(fd);
-            break;
-            
-        }
-        else {
-            // 处理读取到的数据
-            std::string message(buffer, n);
-            inputToken = 0 + message[0] - '0';
-            // cout<<inputToken<<endl;
-            
-        }
-
-        if (inputToken == 0) break;
-
-        if (board.isValid(inputToken))
+    if (cho == 1) {
+        while (inputToken != 0)
         {
-            board.move(inputToken, PlayerEnum::O);
-            bool isWon = checkWon(board, PlayerEnum::O, "You Won");
-            bool isDraw = checkDraw(board);
+            board.printToScreen();
+            // std::cout << "Your move: ";
+            // std::cin >> inputToken;
+            char buffer[1024];
+            int n = read(fd, buffer, 1024);   // recv()
+            if (n < 0) {
+                // 处理错误
+                perror("read error");
+                exit(-1);
+            }
+            else if (n == 0) {
+                // 客户端断开连接
+                printf("客户端断开连接\n");
+            
+                close(fd);
+                break;
+            
+            }
+            else {
+             // 处理读取到的数据
+                std::string message(buffer, n);
+                inputToken = 0 + message[0] - '0';
+                // cout<<inputToken<<endl;
+            
+            }
 
-            if (!isWon && !isDraw)
+            if (inputToken == 0) return;
+
+            if (board.isValid(inputToken))
             {
-                int move = gammaEngine->makeMove(board.copy(), PlayerEnum::X, false);
-                buffer[0] = '0' + move;
-                write(fd, buffer, 1);
+                board.move(inputToken, PlayerEnum::O);
+                bool isWon = checkWon(board, PlayerEnum::O, "You Won");
+                bool isDraw = checkDraw(board);
 
-                board.move(move, PlayerEnum::X);
-                bool isWon = checkWon(board, PlayerEnum::X, "Engine Won");
-                if (isWon)
+                if (!isWon && !isDraw)
                 {
-                    gammaEngine->resetBetweenGames();
+                    int move = gammaEngine->makeMove(board.copy(), PlayerEnum::X, false);
+                    buffer[0] = '0' + move;
+                    write(fd, buffer, 1);
+
+                    board.move(move, PlayerEnum::X);
+                    bool isWon = checkWon(board, PlayerEnum::X, "Engine Won");
+                    if (isWon)
+                    {
+                    // gammaEngine->resetBetweenGames();
+                    goto LOOP;
+                    }
+                    std::cout << std::endl;
                 }
-                std::cout << std::endl;
+                else
+                {
+                    // buffer[0] = '0';
+                    // write(fd, buffer, 1);
+                    //gammaEngine->resetBetweenGames();
+                    goto LOOP;
+                }
             }
             else
             {
                 // buffer[0] = '0';
                 // write(fd, buffer, 1);
-                gammaEngine->resetBetweenGames();
+                std::cout << "Invalid Move\n";
+                // cout<<inputToken<<endl;
             }
         }
-        else
+    } else {
+        while (inputToken != 0)
         {
-            // buffer[0] = '0';
-            // write(fd, buffer, 1);
-            std::cout << "Invalid Move\n";
-            // cout<<inputToken<<endl;
+
+            char buffer[1024];
+            int move = gammaEngine->makeMove(board.copy(), PlayerEnum::O, false);
+            board.move(move, PlayerEnum::O);
+            board.printToScreen();
+            
+            buffer[0] = '0' + move;
+            write(fd, buffer, 1);
+
+            bool isWon = checkWon(board, PlayerEnum::O, "Engine Won");
+            bool isDraw = checkDraw(board);
+            if (!isWon && !isDraw) 
+            {
+                T : 
+                int n = read(fd, buffer, 1024);   // recv()
+                if (n < 0) {
+                    // 处理错误
+                    perror("read error");
+                    exit(-1);
+                }
+                else if (n == 0) {
+                    // 客户端断开连接
+                    printf("客户端断开连接\n");
+            
+                    close(fd);
+                    break;
+            
+                }
+                else {
+                    // 处理读取到的数据
+                    std::string message(buffer, n);
+                    inputToken = 0 + message[0] - '0';
+                    // cout<<inputToken<<endl;
+            
+                }
+                // std::cin >> inputToken;
+
+                if (inputToken == 0) return;
+
+                if (board.isValid(inputToken))
+                {
+                    board.move(inputToken, PlayerEnum::X);
+                    bool isWon = checkWon(board, PlayerEnum::X, "You Won");
+                    if (isWon)
+                    {
+                        // gammaEngine->resetBetweenGames();
+                        goto LOOP;
+                    }
+                    std::cout << std::endl;
+                }
+                else
+                {
+                    std::cout << "Invalid Move\n";
+                    board.printToScreen();
+                    goto T;
+                }
+            }
+            else {
+                //gammaEngine->resetBetweenGames();
+                goto LOOP;
+            }
+            
+            
+            
         }
     }
 }

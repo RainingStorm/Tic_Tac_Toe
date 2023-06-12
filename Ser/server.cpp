@@ -71,7 +71,7 @@ int main(int argc, char** argv)
         connfd = accept(sockfd, (struct sockaddr*)&cliaddr, &cliaddr_len);   //阻塞监听客户端链接请求
         printf("The %dth client connected\n", i + 1);
         printf("-------------------------%d\n", connfd);
-        pool.append(connfd);
+        pool.append_ser(connfd);
     }
 
     close(sockfd);    // 关闭主进程监听套接字
